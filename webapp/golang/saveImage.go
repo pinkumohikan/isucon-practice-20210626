@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/jmoiron/sqlx"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	"log"
 	"os"
 	"strconv"
@@ -42,16 +42,19 @@ func main() {
 	}
 	defer db.Close()
 
-	post := Post21{}
-	err = db.Get(&post, "SELECT * FROM `posts`")
+	posts := []Post21{}
+	err = db.Select(&posts, "SELECT * FROM `posts`")
 	if err != nil {
 		log.Print(err)
 		return
 	}
-	imageType :=strings.Replace(post.Mime,"image", "", 1)
-	file, _ := os.Create("./images/" + strconv.Itoa(post.ID) + "." + imageType)
-	fmt.Println("./images/" + strconv.Itoa(post.ID) + "." + imageType)
-	defer file.Close()
-	file.Write(([]byte)(post.Imgdata))
-	fmt.Println("testtest")
+	for _, p := range posts {
+		imageType :=strings.Replace(p.Mime,"image/", "", 1)
+		file, _ := os.Create("/home/isucon/isucon-practice-20210626/webapp/golang/images/" + strconv.Itoa(p.ID) + "." + imageType)
+		fmt.Println("./images/" + strconv.Itoa(p.ID) + "." + imageType)
+		defer file.Close()
+		file.Write(([]byte)(p.Imgdata))
+		fmt.Println("testtest")
+	}
+
 }
