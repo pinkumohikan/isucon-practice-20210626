@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"os"
 	"strconv"
