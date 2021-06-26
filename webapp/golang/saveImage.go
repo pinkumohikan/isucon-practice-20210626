@@ -7,8 +7,18 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
-
+type Post21 struct {
+	ID           int       `db:"id"`
+	UserID       int       `db:"user_id"`
+	Imgdata      []byte    `db:"imgdata"`
+	Body         string    `db:"body"`
+	Mime         string    `db:"mime"`
+	CreatedAt    time.Time `db:"created_at"`
+	CommentCount int
+	CSRFToken    string
+}
 func main() {
 	host := "isucon-app3"
 	port := "3306"
@@ -31,7 +41,7 @@ func main() {
 	}
 	defer db.Close()
 
-	post := Post{}
+	post := Post21{}
 	err = db.Get(&post, "SELECT * FROM `posts`")
 	if err != nil {
 		log.Print(err)
