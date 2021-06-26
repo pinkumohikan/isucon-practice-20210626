@@ -740,20 +740,6 @@ func getImage(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
 }
 
-func saveImages(w http.ResponseWriter, r *http.Request) {
-	post := Post{}
-	err := db.Get(&post, "SELECT * FROM `posts`")
-	if err != nil {
-		log.Print(err)
-		return
-	}
-	imageType :=strings.Replace(post.Mime,"image", "", 1)
-	file, _ := os.Create(`./images/` + strconv.Itoa(post.ID) + "." + imageType)
-	defer file.Close()
-	file.Write(([]byte)(post.Imgdata))
-	w.WriteHeader(http.StatusNotFound)
-}
-
 func postComment(w http.ResponseWriter, r *http.Request) {
 	me := getSessionUser(r)
 	if !isLogin(me) {
@@ -924,6 +910,5 @@ func main() {
 	mux.HandleFunc(pat.Post("/admin/banned"), postAdminBanned)
 	mux.HandleFunc(Regexp(regexp.MustCompile(`^/@(?P<accountName>[a-zA-Z]+)$`)), getAccountName)
 	mux.Handle(pat.Get("/*"), http.FileServer(http.Dir("../public")))
-	mux.HandleFunc(pat.Get("/saveImages"), saveImages)
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
