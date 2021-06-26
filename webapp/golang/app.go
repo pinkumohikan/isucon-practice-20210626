@@ -704,7 +704,7 @@ func postIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	imageType :=strings.Replace(mime,"image/", "", 1)
-	fileName, _ := os.Create("/home/isucon/isucon-practice-20210626/webapp/golang/images/" + strconv.FormatInt(pid, 10) + "." + imageType)
+	fileName, _ := os.Create("/home/isucon/isucon-practice-20210626/webapp/golang/image/" + strconv.FormatInt(pid, 10) + "." + imageType)
 
 	defer fileName.Close()
 	fileName.Write(([]byte)(filedata))
