@@ -593,7 +593,7 @@ func getPostsID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	results := []Post{}
-	err = db.Select(&results, "SELECT id,user_id,body,mime,created_at FROM `posts` WHERE `id` = ?", pid)
+	err = db.Select(&results, "SELECT id, user_id, mime, body, created_at FROM `posts` WHERE `id` = ?", pid)
 	if err != nil {
 		log.Print(err)
 		return
@@ -892,7 +892,7 @@ func main() {
 	}
 
 	dsn := fmt.Sprintf(
-		"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local",
+		"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local&interpolateParams=true",
 		user,
 		password,
 		host,
@@ -905,6 +905,9 @@ func main() {
 		log.Fatalf("Failed to connect to DB: %s.", err.Error())
 	}
 	defer db.Close()
+	db.SetConnMaxLifetime(time.Minute)
+	db.SetMaxOpenConns(50)
+	db.SetMaxIdleConns(50)
 
 	mux := goji.NewMux()
 
