@@ -192,12 +192,13 @@ func makePosts(results []Post, csrfToken string, allComments bool) ([]Post, erro
 		if err != nil {
 			return nil, err
 		}
-
+		var userIds = getUniqueIds(comments)
+		users, i, err2 := getUsers(userIds)
+		if err2 != nil {
+			return i, err2
+		}
 		for i := 0; i < len(comments); i++ {
-			err := db.Get(&comments[i].User, "SELECT * FROM `users` WHERE `id` = ?", comments[i].UserID)
-			if err != nil {
-				return nil, err
-			}
+			comments[i].User = users[comments[i].UserID]
 		}
 
 		// reverse
@@ -223,6 +224,40 @@ func makePosts(results []Post, csrfToken string, allComments bool) ([]Post, erro
 	}
 
 	return posts, nil
+}
+
+func getUniqueIds(comments []Comment) []interface{} {
+	userIdUnique := make(map[int]struct{})
+	var userIds []interface{}
+
+	for _, i := range comments {
+		id := i.UserID
+		if _, ok := userIdUnique[id]; !ok {
+			userIds = append(userIds, id)
+			userIdUnique[id] = struct{}{}
+		}
+	}
+	return userIds
+}
+
+func getUsers(userIds []interface{}) (map[int]User, []Post, error) {
+	var users map[int]User
+	if len(userIds) > 0 {
+		query, args, err := sqlx.In("SELECT * FROM `users` WHERE `id` IN (?)", userIds)
+		if err != nil {
+			return nil, nil, err
+		}
+		var s []User
+		err = db.Select(&s, query, args...)
+		if err != nil {
+			return nil, nil, err
+		}
+		users = make(map[int]User, len(s))
+		for _, u := range s {
+			users[u.ID] = u
+		}
+	}
+	return users, nil, nil
 }
 
 func imageURL(p Post) string {
