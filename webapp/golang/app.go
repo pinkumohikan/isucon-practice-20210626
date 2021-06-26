@@ -50,7 +50,6 @@ type User struct {
 type Post struct {
 	ID           int       `db:"id"`
 	UserID       int       `db:"user_id"`
-	Imgdata      []byte    `db:"imgdata"`
 	Body         string    `db:"body"`
 	Mime         string    `db:"mime"`
 	CreatedAt    time.Time `db:"created_at"`
@@ -686,12 +685,11 @@ func postIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query := "INSERT INTO `posts` (`user_id`, `mime`, `imgdata`, `body`) VALUES (?,?,?,?)"
+	query := "INSERT INTO `posts` (`user_id`, `mime`, `body`,`Imgdata`) VALUES (?,?,?, 'aaa')"
 	result, err := db.Exec(
 		query,
 		me.ID,
 		mime,
-		filedata,
 		r.FormValue("body"),
 	)
 	if err != nil {
@@ -705,37 +703,53 @@ func postIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/posts/"+strconv.FormatInt(pid, 10), http.StatusFound)
-}
-
-func getImage(w http.ResponseWriter, r *http.Request) {
-	pidStr := pat.Param(r, "id")
-	pid, err := strconv.Atoi(pidStr)
+	imageType :=strings.Replace(mime,"image/", "", 1)
+	if imageType == "jpeg"  {
+		imageType = "jpg"
+	}
+	fileName, err := os.Create("/home/isucon/isucon-practice-20210626/webapp/golang/image/" + strconv.FormatInt(pid, 10) + "." + imageType)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
+		log.Print(err)
 		return
 	}
-
-	post := Post{}
-	err = db.Get(&post, "SELECT * FROM `posts` WHERE `id` = ?", pid)
+	defer fileName.Close()
+	_, err = fileName.Write(([]byte)(filedata))
 	if err != nil {
 		log.Print(err)
 		return
 	}
 
-	ext := pat.Param(r, "ext")
+	http.Redirect(w, r, "/posts/"+strconv.FormatInt(pid, 10), http.StatusFound)
+}
 
-	if ext == "jpg" && post.Mime == "image/jpeg" ||
-		ext == "png" && post.Mime == "image/png" ||
-		ext == "gif" && post.Mime == "image/gif" {
-		w.Header().Set("Content-Type", post.Mime)
-		_, err := w.Write(post.Imgdata)
-		if err != nil {
-			log.Print(err)
-			return
-		}
-		return
-	}
+func getImage(w http.ResponseWriter, r *http.Request) {
+	//pidStr := pat.Param(r, "id")
+	//pid, err := strconv.Atoi(pidStr)
+	//if err != nil {
+	//	w.WriteHeader(http.StatusNotFound)
+	//	return
+	//}
+	//
+	//post := Post{}
+	//err = db.Get(&post, "SELECT * FROM `posts` WHERE `id` = ?", pid)
+	//if err != nil {
+	//	log.Print(err)
+	//	return
+	//}
+	//
+	//ext := pat.Param(r, "ext")
+	//
+	//if ext == "jpg" && post.Mime == "image/jpeg" ||
+	//	ext == "png" && post.Mime == "image/png" ||
+	//	ext == "gif" && post.Mime == "image/gif" {
+	//	w.Header().Set("Content-Type", post.Mime)
+	//	_, err := w.Write(post.Imgdata)
+	//	if err != nil {
+	//		log.Print(err)
+	//		return
+	//	}
+	//	return
+	//}
 
 	w.WriteHeader(http.StatusNotFound)
 }
@@ -913,6 +927,5 @@ func main() {
 	mux.HandleFunc(pat.Post("/admin/banned"), postAdminBanned)
 	mux.HandleFunc(Regexp(regexp.MustCompile(`^/@(?P<accountName>[a-zA-Z]+)$`)), getAccountName)
 	mux.Handle(pat.Get("/*"), http.FileServer(http.Dir("../public")))
-
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
