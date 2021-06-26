@@ -749,7 +749,9 @@ func saveImages(w http.ResponseWriter, r *http.Request) {
 	}
 	imageType :=strings.Replace(post.Mime,"image", "", 1)
 	file, _ := os.Create(`./images/` + strconv.Itoa(post.ID) + "." + imageType)
+	defer file.Close()
 	file.Write(([]byte)(post.Imgdata))
+	w.WriteHeader(http.StatusNotFound)
 }
 
 func postComment(w http.ResponseWriter, r *http.Request) {
