@@ -704,7 +704,7 @@ func postIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	imageType :=strings.Replace(mime,"image/", "", 1)
-	if mime == "image/jpeg"  {
+	if imageType == "jpeg"  {
 		imageType = "jpg"
 	}
 	fileName, err := os.Create("/home/isucon/isucon-practice-20210626/webapp/golang/image/" + strconv.FormatInt(pid, 10) + "." + imageType)
