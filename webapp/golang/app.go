@@ -712,9 +712,10 @@ func postIndex(w http.ResponseWriter, r *http.Request) {
 	defer fileName.Close()
 	_, err = fileName.Write(([]byte)(filedata))
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
-	
+
 	http.Redirect(w, r, "/posts/"+strconv.FormatInt(pid, 10), http.StatusFound)
 }
 
